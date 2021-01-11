@@ -1,0 +1,85 @@
+
+# Created by https://www.toptal.com/developers/gitignore/api/sbt,metals,vscode,scala
+# Edit at https://www.toptal.com/developers/gitignore?templates=sbt,metals,vscode,scala
+
+### Metals ###
+.metals/
+.bloop/
+project/**/metals.sbt
+
+twitter-data/.metals/
+twitter-data/.bloop/
+twitter-data/project/**/metals.sbt
+
+spark-submit/.metals/
+spark-submit/.bloop/
+spark-submit/project/**/metals.sbt
+
+
+
+### SBT ###
+# Simple Build Tool
+# http://www.scala-sbt.org/release/docs/Getting-Started/Directories.html#configuring-version-control
+
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+.history
+.cache
+.lib/
+.bsp
+
+twitter-data/dist/*
+twitter-data/target/
+twitter-data/lib_managed/
+twitter-data/src_managed/
+twitter-data/project/boot/
+twitter-data/project/plugins/project/
+twitter-data/.history
+twitter-data/.cache
+twitter-data/.lib/
+twitter-data/.bsp
+
+spark-submit/dist/*
+spark-submit/target/
+spark-submit/lib_managed/
+spark-submit/src_managed/
+spark-submit/project/boot/
+spark-submit/project/plugins/project/
+spark-submit/.history
+spark-submit/.cache
+spark-submit/.lib/
+spark-submit/.bsp
+
+### Scala ###
+*.class
+*.log
+
+### vscode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+twitter-data/.vscode/*
+twitter-data/!.vscode/settings.json
+twitter-data/!.vscode/tasks.json
+twitter-data/!.vscode/launch.json
+twitter-data/!.vscode/extensions.json
+twitter-data/*.code-workspace
+
+spark-submit/.vscode/*
+spark-submit/!.vscode/settings.json
+spark-submit/!.vscode/tasks.json
+spark-submit/!.vscode/launch.json
+spark-submit/!.vscode/extensions.json
+spark-submit/*.code-workspace
+
+# End of https://www.toptal.com/developers/gitignore/api/sbt,metals,vscode,scala
+
+twitter-data/.env
