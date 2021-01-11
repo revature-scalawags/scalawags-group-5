@@ -1,6 +1,7 @@
 
 # Created by https://www.toptal.com/developers/gitignore/api/sbt,metals,vscode,scala
 # Edit at https://www.toptal.com/developers/gitignore?templates=sbt,metals,vscode,scala
+.vscode
 
 ### Metals ###
 .metals/
