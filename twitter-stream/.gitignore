@@ -3,6 +3,9 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=scala,intellij,spark,sbt,dotenv
 
 ### dotenv ###
+.env
+
+##Twitter keys ##
 twitterProps.txt
 
 ### Streaming Results ###

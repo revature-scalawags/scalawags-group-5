@@ -11,5 +11,7 @@ libraryDependencies ++= Seq(
   "org.twitter4j" % "twitter4j-core" % "4.0.4",
   "org.twitter4j" % "twitter4j-stream" % "4.0.4",
   "org.apache.logging.log4j" %% "log4j-api-scala" % "12.0",
-  "org.apache.logging.log4j" % "log4j-core" % "2.13.0" % Runtime
+  "org.apache.logging.log4j" % "log4j-core" % "2.13.0" % Runtime,
+  "com.amazonaws" % "aws-java-sdk" % "1.7.4",
+  "org.apache.hadoop" % "hadoop-aws" % "2.7.1"
 )
