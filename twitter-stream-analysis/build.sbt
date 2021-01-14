@@ -9,5 +9,6 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "3.0.1",
   "org.apache.logging.log4j" %% "log4j-api-scala" % "12.0",
   "org.apache.logging.log4j" % "log4j-core" % "2.13.0" % Runtime,
-  "com.github.seratch" %% "awscala-s3" % "0.8.+"
+  "com.github.seratch" %% "awscala-s3" % "0.8.+",
+  "org.apache.hadoop" % "hadoop-aws" % "2.8.3"
 )
