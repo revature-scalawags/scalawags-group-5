@@ -27,7 +27,7 @@ object Main {
     setupTwitterStream()
     val key = sys.env.get("AWS_KEY").get
     val sec = sys.env.get("AWS_SECRET").get
-    val duration = Seconds(300)
+    val duration = Minutes(1440)
     val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
 
     val results = TwitterUtils.createStream(ssc, None)
@@ -37,9 +37,10 @@ object Main {
       .map(hashtag => (hashtag, 1))
       .reduceByKeyAndWindow(_+_, _-_, duration, duration)
       .transform(rdd => rdd.sortBy(x => x._2, ascending = false))
-      .map(filterResults).cache()
+      .map(filterResults)
 
-    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://$key:$sec@cpiazza01-revature/project2/Results"))
+    //results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://$key:$sec@cpiazza01-revature/project2/Results"))
+    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile("Results"))
 
     ssc.checkpoint("Checkpoint")
     ssc.start()
