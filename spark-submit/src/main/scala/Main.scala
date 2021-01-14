@@ -29,7 +29,6 @@ object Main  {
     val weirdQuery = jsonfile.filter(functions.length($"name.first") < 6)
       .groupBy("eyeColor")
       .agg(functions.avg("age"))
-
     weirdQuery.show()
     weirdQuery.explain(true)
 
