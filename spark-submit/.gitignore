@@ -1,0 +1,23 @@
+# Created by https://www.toptal.com/developers/gitignore/api/metals,bloop
+# Edit at https://www.toptal.com/developers/gitignore?templates=metals,bloop
+
+### Bloop ###
+.bloop/
+
+### Metals ###
+.metals/
+project/**/metals.sbt
+
+# End of https://www.toptal.com/developers/gitignore/api/metals,bloop
+
+.vscode/
+
+.bsp/
+
+target/
+
+# twitter_example/
+
+all301.json
+
+people.json
