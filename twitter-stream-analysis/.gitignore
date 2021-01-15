@@ -5,11 +5,8 @@
 ### dotenv ###
 .env
 
-##Twitter keys ##
-twitterProps.txt
-
 ### Streaming Results ###
-Results/*
+FinalResults/*
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
@@ -225,8 +222,5 @@ spark-warehouse/
 
 # For SBT
 .jvmopts
-
-#Twitter Props
-twitterProps
 
 # End of https://www.toptal.com/developers/gitignore/api/scala,intellij,spark,sbt,dotenv
