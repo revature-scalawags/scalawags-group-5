@@ -17,21 +17,12 @@ object Main {
     lines.close()
   }
 
-  def filterResults(stream: (String,Int)): String = {
-    val streamString = stream.toString
-    val sub = streamString.substring(0, streamString.lastIndexOf(","))
-    val num = streamString.substring(streamString.lastIndexOf(",") + 1, streamString.length)
-    val result = sub + "," + num
-    result
-  }
-
   def main(args: Array[String]) {
     setupTwitterStream()
     val key = sys.env.get("AWS_KEY").get
     val sec = sys.env.get("AWS_SECRET").get
-    val duration = Minutes(60)
+    val duration = Seconds(60)
     val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
-    Logger.getRootLogger().setLevel(Level.ERROR)
 
     val results = TwitterUtils.createStream(ssc, None)
       .map(status => status.getText)
@@ -40,7 +31,6 @@ object Main {
       .map(hashtag => (hashtag, 1))
       .reduceByKeyAndWindow(_+_, Minutes(1440))
       .transform(rdd => rdd.sortBy(x => x._2, ascending = false))
-      .map(filterResults)
 
     //results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://$key:$sec@cpiazza01-revature/project2/Results"))
     results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile("Results"))
