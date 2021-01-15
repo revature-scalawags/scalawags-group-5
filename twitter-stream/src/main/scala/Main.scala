@@ -1,5 +1,7 @@
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
 
 object Main {
 
@@ -17,8 +19,8 @@ object Main {
 
   def filterResults(stream: (String,Int)): String = {
     val streamString = stream.toString
-    val sub = streamString.substring(2, streamString.lastIndexOf(","))
-    val num = streamString.substring(streamString.lastIndexOf(",") + 1, streamString.length - 1)
+    val sub = streamString.substring(0, streamString.lastIndexOf(","))
+    val num = streamString.substring(streamString.lastIndexOf(",") + 1, streamString.length)
     val result = sub + "," + num
     result
   }
@@ -27,15 +29,16 @@ object Main {
     setupTwitterStream()
     val key = sys.env.get("AWS_KEY").get
     val sec = sys.env.get("AWS_SECRET").get
-    val duration = Minutes(1440)
+    val duration = Minutes(60)
     val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
+    Logger.getRootLogger().setLevel(Level.ERROR)
 
     val results = TwitterUtils.createStream(ssc, None)
       .map(status => status.getText)
       .flatMap(text => text.split(" "))
       .filter(word => word.startsWith("#"))
       .map(hashtag => (hashtag, 1))
-      .reduceByKeyAndWindow(_+_, _-_, duration, duration)
+      .reduceByKeyAndWindow(_+_, Minutes(1440))
       .transform(rdd => rdd.sortBy(x => x._2, ascending = false))
       .map(filterResults)
 
