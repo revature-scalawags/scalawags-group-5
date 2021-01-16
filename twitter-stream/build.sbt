@@ -15,3 +15,8 @@ libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-java-sdk" % "1.7.4",
   "org.apache.hadoop" % "hadoop-aws" % "2.7.1"
 )
+
+assemblyMergeStrategy in assembly := {
+ case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+ case x => MergeStrategy.first
+}

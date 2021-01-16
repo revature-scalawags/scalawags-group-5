@@ -5,6 +5,10 @@ import org.apache.log4j.Level
 
 object Main {
 
+  /** Uses system properties to set up twitter credentials
+    * taking the information from twitterProps.txt
+    * - https://www.udemy.com/course/apache-spark-with-scala-hands-on-with-big-data/learn/lecture/22022796#overview
+    */ 
   def setupTwitterStream(){
     import scala.io.Source
     val lines = Source.fromFile("twitterProps")
@@ -18,25 +22,42 @@ object Main {
   }
 
   def main(args: Array[String]) {
+
+    // Set up Twitter credentials
     setupTwitterStream()
-    val key = sys.env.get("AWS_KEY").get
-    val sec = sys.env.get("AWS_SECRET").get
-    val duration = Seconds(60)
+
+    // Grab key and secret from environment variables
+    val key = System.getenv("AWS_ACCESS_KEY_ID")
+    val sec = System.getenv("AWS_SECRET_ACCESS_KEY")
+
+    // Will write to results every 5 minutes
+    val duration = Seconds(300)
+
     val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
 
+    // Filters tweets by hashtags only, 
+    // then counts occurances of each one
+    // filtering them out every 12 hours
+    // and then sorting the results 
+    // https://www.udemy.com/course/apache-spark-with-scala-hands-on-with-big-data/learn/lecture/22022796#overview
     val results = TwitterUtils.createStream(ssc, None)
       .map(status => status.getText)
       .flatMap(text => text.split(" "))
       .filter(word => word.startsWith("#"))
       .map(hashtag => (hashtag, 1))
-      .reduceByKeyAndWindow(_+_, Minutes(1440))
+      .reduceByKeyAndWindow(_+_, Minutes(720))
       .transform(rdd => rdd.sortBy(x => x._2, ascending = false))
 
-    //results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://$key:$sec@cpiazza01-revature/project2/Results"))
-    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile("Results"))
+    // Save as text file to specified S3 bucket
+    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://${args(0)}"))
 
+    // Will create streaming checkpoints to ensure accurate data
     ssc.checkpoint("Checkpoint")
+
+    // Start the stream
     ssc.start()
+
+    // Stream until manually terminated
     ssc.awaitTermination
   }  
 }

@@ -13,9 +13,10 @@ object Main {
     println("Welcome to Group Five's Streaming Analysis!")
     Thread.sleep(2000)
     println(
-      "This program will analyze the counts of Hashtags streamed in from Twitter over a 24 hour period, and save them to a bucket on S3"
+      "This program will analyze the counts of Hashtags streamed in from Twitter over the last 12 hours, and save them to a bucket on S3"
     )
     Thread.sleep(3000)
+    println
     val key = System.getenv("AWS_ACCESS_KEY_ID")
     val secret = System.getenv("AWS_SECRET_ACCESS_KEY")
     val client = getS3Client(key, secret)
@@ -23,7 +24,7 @@ object Main {
 
     // Grab hashtag data and filter it into a more useful format
     val input = sc
-      .textFile(args(0))
+      .textFile(s"s3a://${args(0)}")
       .filter(lineCheck)
       .map(lineFormat)
       .cache()
@@ -60,10 +61,10 @@ object Main {
 
     // Save file locally
     val file =
-      saveAsFile(fileResults, s"${args(1)}/HashtagStreamResults-$now.csv")
+      saveAsFile(fileResults, s"FinalResults/HashtagStreamResults-$now.csv")
 
     // Define S3 path
-    val s3Path = args(2)
+    val s3Path  = args(1)
 
     // Grab local file and place it on S3 bucket
     client.putObject(s3Path, file.getName, file)

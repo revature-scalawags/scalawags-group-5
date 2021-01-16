@@ -16,14 +16,25 @@ Spark application that analyzes data generated from streaming Tweets in real tim
 - Saves output csv file to an S3 bucket on the cloud
 
 ## Usage ##
+- Clone this repository with the following command:
+```bash
+git clone https://github.com/revature-scalawags/scalawags-group-5.git
+```
+- Navigate to the "twitter-stream-analysis" directory in your shell, then run "sbt assembly"
+- Once the jar is generated, it will be located in target/scala-x.xx. Copy this jar over to your spark cluster.
+- Save your AWS S3 credentials as environment variables in your spark cluster shell session in the following format:
+```
+AWS_ACCESS_KEY_ID=*******************
+AWS_SECRET_ACCESS_KEY=**********************************
+```
 - Use the "twitter-stream" in this repository program to gather your streamed hashtag data
-- Save your AWS credentials as environment variables in your shell
-- Run a spark submit on your spark cluster, inputting the following three arguments are the jar file is specified: [InputFilePath] [OutputFileDirectory] [S3BucketOutputPath]
-    - Example: 
-    <br> ./spark/bin/spark-submit 
-    <br>--class Main 
-    <br>--master local[*] 
-    <br> twitter-stream-analysis.jar
-    <br> Results/your-data.txt 
-    <br>FinalResults 
-    <br>cpiazza01-revature/project2/finalStreamingResults
+- Run spark-submit on the jar file, specifying "Main" as the class and specifying the path to your S3 bucket data INPUT DIRECTORY (where your stream is currently outputting data to) as the first argument, and the path to your S3 bucket OUTPUT DIRECTORY (where the results  of the analysis will be saved to) as your second argument. MAKE SURE THESE PATHS ARE VALID! For example:
+```bash
+spark-submit  
+--class Main 
+--master local[*] 
+yourJar.jar 
+bucket-name/directory/input-directory 
+bucket-name/directory/output-directory
+```
+- Your results will be displayed on screen, as well as saved in a .csv format on your S3 bucket
