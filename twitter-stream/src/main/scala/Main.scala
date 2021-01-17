@@ -30,10 +30,11 @@ object Main {
     val key = System.getenv("AWS_ACCESS_KEY_ID")
     val sec = System.getenv("AWS_SECRET_ACCESS_KEY")
 
-    // Will write to results every 5 minutes
-    val duration = Seconds(300)
+    // Will write to results every 10 minutes
+    val duration = Seconds(600)
 
     val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
+    Logger.getRootLogger().setLevel(Level.ERROR)
 
     // Filters tweets by hashtags only, 
     // then counts occurances of each one
@@ -46,10 +47,11 @@ object Main {
       .filter(word => word.startsWith("#"))
       .map(hashtag => (hashtag, 1))
       .reduceByKeyAndWindow(_+_, Minutes(720))
-      .transform(rdd => rdd.sortBy(x => x._2, ascending = false))
+      .transform(rdd => rdd.sortBy(x => x._2, ascending = false)).cache()
 
     // Save as text file to specified S3 bucket
     results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://${args(0)}"))
+    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"Results"))
 
     // Will create streaming checkpoints to ensure accurate data
     ssc.checkpoint("Checkpoint")
