@@ -10,4 +10,4 @@ sbt assemble
 cd ..
 
 # Moves the csv and jar into docker container
-docker cp 
+#docker cp 

@@ -1,124 +1,167 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions
+import org.apache.spark.sql.Dataset
+import scala.collection.mutable.Map
 import scala.io.Source
 import java.io._
 import javax.xml.transform.Source
+import org.apache.spark.sql.Row
 
+/** 
+  * 
+  */
 object Main  {
+
+  /** 
+    * 
+    * 
+    * @param args
+    */
   def main(args: Array[String]) {
-    // val spark = SparkSession.builder().appName("hello world").getOrCreate()
-    // spark.sparkContext.setLogLevel("WARN")
-    // helloSQL(spark)
-    // spark.stop()
-    fixTwitterJson()
+    val spark = SparkSession.builder().appName("spark-test").getOrCreate()
+    spark.sparkContext.setLogLevel("WARN")
+    init(spark)
+    spark.stop()
   }
 
-  def helloSQL(spark: SparkSession) {
+  /** Reads in the Json file, does queries on the data, and then writes the data to a file.
+    * 
+    *
+    * @param spark The Spark session of the app.
+    */
+  def init(spark: SparkSession) {
     import spark.implicits._
-    val jsonfile = spark.read.option("multiline", "true").json("/datalake/people.json").cache()
-    jsonfile.show()
-    jsonfile.printSchema()
-    jsonfile.select($"name", $"age" + 10).show()
-    jsonfile.select(jsonfile("name.first"), jsonfile("age") + 20).show()
-    jsonfile.groupBy("eyeColor").count().show()
-    jsonfile.select(functions.round($"age", -1)).show()
 
+    // Import the file from the datalake
+    val jsonfile = spark.read.option("multiline", "true").json("/datalake/month").cache()
 
+    // Print the schema of the Json File
+    //jsonfile.printSchema()
 
-    // What is the average age by eye color for people with first names of length < 6
-    val weirdQuery = jsonfile.filter(functions.length($"name.first") < 6)
-      .groupBy("eyeColor")
-      .agg(functions.avg("age"))
-    weirdQuery.show()
-    weirdQuery.explain(true)
+    // Reading the data into a dataset of just data that is needed.
+    val tweetDataset = jsonfile.as[Tweet]
 
+    // Queries
+    var sourceCounting = SourceQuery(tweetDataset)
+    var textCounting = TextQuery(tweetDataset)
+    var verifiedCounting = VerifiedQuery(tweetDataset)
+    var hashtagCounting = HashtagsQuery(tweetDataset)
+    var langCounting = LangQuery(tweetDataset)
 
-
-    val peopleDataSet = jsonfile.as[Person]
-    peopleDataSet.filter(person => person.name.first.length < 6).show()
-
-    val weirdQuery2 = peopleDataSet.filter(_.name.first.length < 6)
-      .map(person => s"${person.name.first} ${person.name.last}")
-
-    weirdQuery2.select(weirdQuery2("value").alias("Full Name")).show()
+    // Write to the datawarehouse
+    //val writer = new PrintWriter( new File("datawarehouse/text.csv") )
+    // FileWritiing(writer, sourceCounting)
     
-
-
-    jsonfile.write.partitionBy("eyeColor").parquet("/datawarehouse/people.parquet")
-
-
-
-    val peopleParquet = spark.read.parquet("/datawarehouse/people.parquet")
-    peopleParquet.show()
-
-
-
-    spark.createDataset(List(Name("Mehrab", "Rahman"), Name("Rahman", "Mehrab")))
-      .createOrReplaceTempView("names")
-    
-    println(spark.sql("SELECT * FROM names").rdd.toDebugString)
-
   }
 
-  def One_hour_fixTwitterJson(hour: String):Unit = {
-    val fileName = s"0301_$hour.json"
-    val file = new File(fileName)
-    // if(!file.exists){
-    //   new java.io.File(fileName)
-    // }
-    val myWriter = new PrintWriter(file)
-    myWriter.write("[")
-    for(j <- 0 until 60){
-      val folderNumber = hour
-      val fileNumber: String = if(j < 10){ "0" + j }else{ j.toString() }
-      val sourcepath = s"twitter_example/twitter_stream_2020_03_01/03/01/$folderNumber/$fileNumber.json"
-      val lines = scala.io.Source.fromFile(sourcepath).getLines()
-      for(line <- lines){
-        if(lines.hasNext){
-          myWriter.write(line + ",")
-        }else{
-          myWriter.write(line)
-        }
+  // Not Done - test
+  def SourceQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
+    println("Source")
+
+    val sqlquery = tweetDataset.groupBy("user.verified").count()
+    var sourceCounting = Map[String, Int]("Android" -> 0, "IOS" -> 0, "Web" -> 0)
+
+    for (index <- sqlquery){
+
+      // index(0).toString() match {
+      //   case index.toString().contains("android") => println(index(0))
+      // }
+
+      if (index(0) != null){
+        var sourceUrl = index(0).toString().toLowerCase() 
+        println(sourceUrl)
+        
+        // sourceUrl match {
+        //   case sourceUrl contains "iso" => println(sourceUrl)
+        //   case sourceUrl contains "android" => println(sourceUrl)
+        //   case _ => println()
+          
+        // }
       }
+
+      
+
+      println(index(0)) // This is the url
+      println(index(1)) // This is the count.
     }
-    myWriter.write("]")
-    myWriter.close()
+
+    sourceCounting
   }
 
-  def fixTwitterJson():Unit = {
-    val fileName = "all0301.json"
-    val file = new File(fileName)
-    // if(!file.exists){
-    //   new java.io.File(fileName)
-    // }
-    val myWriter = new PrintWriter(file)
-    myWriter.write("[")
-    for(i <- 0 until 24){
-      for(j <- 0 until 60){
-        val folderNumber: String = if(i < 10){ "0" + i }else{ i.toString() }
-        val fileNumber: String = if(j < 10){ "0" + j }else{ j.toString() }
-        val sourcepath = s"twitter_example/twitter_stream_2020_03_01/03/01/$folderNumber/$fileNumber.json"
-        val lines = scala.io.Source.fromFile(sourcepath).getLines()
-        for(line <- lines){
-          if(lines.hasNext){
-            myWriter.write(line + ",")
-          }else{
-            myWriter.write(line)
-          }
-        }
+  
+
+  // Not Done
+  def TextQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
+    println("Text")
+
+    val sqlquery = tweetDataset.select("text")
+    var textCounting = Map[String, Int]()
+
+    for (index <- sqlquery){
+      println(index)
+      println(index(0)) // This is the text
+    }
+
+    textCounting
+  }
+
+  // Done
+  def VerifiedQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
+    println("Verified")
+
+    val sqlquery = tweetDataset.groupBy("user.verified").count()
+    var verifiedCounting = Map[String, Int]()
+
+    for (index <- sqlquery){
+      verifiedCounting += (index(0).toString() -> index(1).toString().toInt)
+      println(index(0)) // This is the url
+      println(index(1)) // This is the count.
+    }
+
+    verifiedCounting.foreach( println )
+    verifiedCounting
+  }
+
+  // Not Done
+  def HashtagsQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
+    println("Hashtag")
+
+    val sqlquery = tweetDataset.groupBy("entities.hashtags.text").count()
+    var hashtagCounting = Map[String, Int]()
+
+    for (index <- sqlquery){
+      println(index)
+      println(index(0)) // This is the url
+      println(index(1)) // This is the count.
+    }
+
+    hashtagCounting.foreach( println )
+    hashtagCounting
+  }
+
+  // Done? Not tested
+  def LangQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
+    println("Language")
+    val sqlquery = tweetDataset.groupBy("lang").count()
+    var langCounting = Map[String, Int]()
+
+    for (index <- sqlquery){
+      // check if null
+      if(index(0) == null){
+        langCounting += (index(0).toString() -> index(1).toString().toInt)
+      }else{
+        langCounting += (index(0).toString() -> index(1).toString().toInt)
       }
+      println(index(0)) // This is the language.
+      println(index(1)) // This is the count.
     }
-    myWriter.write("]")
-    myWriter.close()
+
+    langCounting.foreach( println )
+    langCounting
   }
 
-  def helloWorld(spark: SparkSession) {
-    import spark.implicits._
-    val file = spark.read.textFile("/tmp/logfile.txt").cache()
-    val split = file.map(line => line.split(","))
-    split.foreach(i => println(i))
-  }
-
-  case class Person(_id: String, index: Long, age: Long, eyeColor: String, name: Name, phone: String, address: String) {}
-  case class Name(first: String, last: String) {}
+  case class Tweet(source: String, text: String, user: User, entities: Entities, lang: String)
+  case class User(verified: Boolean)
+  case class Entities(hashtags: Array[Text])
+  case class Text(text: String)
 }

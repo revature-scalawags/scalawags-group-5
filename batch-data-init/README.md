@@ -1,4 +1,4 @@
-# spark-submit
+# trial
 
 ## Requirements to run beforehand
     spark
@@ -6,4 +6,3 @@
 
 ## Run
     > sh run.sh
-
