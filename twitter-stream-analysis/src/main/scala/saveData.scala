@@ -23,7 +23,7 @@ object saveData extends TimerTask with App {
         val interval = if (LocalTime.now().isAfter(LocalTime.NOON)) "evening" else "morning"
         val now = Calendar.getInstance.getTime().toString().replace(" ", "-").replace(":", ".")
         val s3SourcePath = "cpiazza01-revature/project2/Results"
-        val s3DestPath = "cpiazza01-revature/project2/Results/Saved Data"
+        val s3DestPath = "cpiazza01-revature/project2/Results/SavedData"
 
         client.copyObject(s3SourcePath, "part-00000", s3DestPath, s"$date-$interval")
         println(s"file copied at: $now")

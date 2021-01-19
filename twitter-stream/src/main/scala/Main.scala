@@ -51,6 +51,7 @@ object Main {
 
     // Save as text file to specified S3 bucket
     results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://${args(0)}"))
+    
     results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"Results"))
 
     // Will create streaming checkpoints to ensure accurate data
