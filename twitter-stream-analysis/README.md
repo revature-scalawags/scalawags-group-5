@@ -28,13 +28,12 @@ AWS_ACCESS_KEY_ID=*******************
 AWS_SECRET_ACCESS_KEY=**********************************
 ```
 - Use the "twitter-stream" in this repository program to gather your streamed hashtag data
-- Run spark-submit on the jar file, specifying "Main" as the class and specifying the path to your S3 bucket data INPUT DIRECTORY (where your stream is currently outputting data to) as the first argument, and the path to your S3 bucket OUTPUT DIRECTORY (where the results  of the analysis will be saved to) as your second argument. MAKE SURE THESE PATHS ARE VALID! For example:
+- Run spark-submit on the jar file, specifying "Main" as the class and specifying the path to your S3 bucket data INPUT DIRECTORY (where your stream is currently outputting data to) as the argument. MAKE SURE THIS PATH IS VALID! For example:
 ```bash
 spark-submit  
 --class Main 
 --master local[*] 
 yourJar.jar 
 bucket-name/directory/input-directory 
-bucket-name/directory/output-directory
 ```
 - Your results will be displayed on screen, as well as saved in a .csv format on your S3 bucket

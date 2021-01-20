@@ -71,7 +71,7 @@ object Main {
 
   /** Checks each line of input to ensure it properly encapsulates a hashtag and its relevant count, based on the following criteria:
     * - Length must be five or greater 
-    * - Must contain open parenthese, a hashtag, a comma, a number, and close parentheses)
+    * - Must contain open parenthese, a hashtag, a comma, a number, and close parentheses
     * @param line Input string from your RDD String
     * @return Returns true if line is valid, otherwise returns false, causing the filter method to discard it
     */
@@ -87,9 +87,9 @@ object Main {
     else true
   }
 
-  /** Removes outer parenthesis and hashtag
+  /** Removes outer parentheses and hashtag
     * @param line Input string from your RDD String
-    * @return Returns a new string stripped of outer parenthese and hashtag
+    * @return Returns a new string stripped of outer parentheses and hashtag
     */
   def lineFormat(line: String): String = {
     val newLine = line.substring(2, line.length - 1)

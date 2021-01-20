@@ -45,7 +45,7 @@ bucket-name/directory/sub-directory
 ```
 
 - After five minutes, a file called "part-00000" will be saved to your specified bucket 
-    - This file will be updated every five minute with the latest hashtag data
+    - This file will be updated every ten minutes with the latest hashtag data
     - Once 12 hours have elapsed, the file will begin filtering out data that is older than 12 hours, while still adding new data
     - As such, once 12 hours have elapsed, your "part-00000" file will contain the previous 12 hours' data for as long as your stream continues to run
 - When you want to terminate your stream, enter the following into your terminal (courtesy of [this blogpost](http://why-not-learn-something.blogspot.com/2016/05/apache-spark-streaming-how-to-do.html)): 
