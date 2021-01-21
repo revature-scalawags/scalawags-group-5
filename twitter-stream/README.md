@@ -1,12 +1,12 @@
-# TWITTER STREAM USING DSTREAMS #
+# TWITTER STREAM USING SPARK STREAMING #
 
 ## Project Description ##
 Spark application that utilize Sparks Dtream object to pull in real-time twitter data, then filter it out based on hashtags and a count of those hashtags.
 
 ## Technologies Used ##
-- Scala
-- Spark
-- Spark Dstreams
+- Scala - version 2.12.12
+- Spark - version 3.0.1
+- Spark Streaming
 - twitter4j sbt package
 
 ## Features ##
