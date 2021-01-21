@@ -5,8 +5,12 @@
 ### dotenv ###
 .env
 
+### Scala Format Doc ###
+.scalafmt.conf
+
 ### Streaming Results ###
-FinalResults/*
+FinalResults/
+tempFiles/
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
