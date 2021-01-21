@@ -1,8 +1,14 @@
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.twitter._
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
 
 object Main {
 
+  /** Uses system properties to set up twitter credentials
+    * taking the information from twitterProps.txt
+    * - https://www.udemy.com/course/apache-spark-with-scala-hands-on-with-big-data/learn/lecture/22022796#overview
+    */ 
   def setupTwitterStream(){
     import scala.io.Source
     val lines = Source.fromFile("twitterProps")
@@ -15,35 +21,46 @@ object Main {
     lines.close()
   }
 
-  def filterResults(stream: (String,Int)): String = {
-    val streamString = stream.toString
-    val sub = streamString.substring(2, streamString.lastIndexOf(","))
-    val num = streamString.substring(streamString.lastIndexOf(",") + 1, streamString.length - 1)
-    val result = sub + "," + num
-    result
-  }
-
   def main(args: Array[String]) {
-    setupTwitterStream()
-    val key = sys.env.get("AWS_KEY").get
-    val sec = sys.env.get("AWS_SECRET").get
-    val duration = Minutes(1440)
-    val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
 
+    // Set up Twitter credentials
+    setupTwitterStream()
+
+    // Grab key and secret from environment variables
+    val key = System.getenv("AWS_ACCESS_KEY_ID")
+    val sec = System.getenv("AWS_SECRET_ACCESS_KEY")
+
+    // Will write to results every 10 minutes
+    val duration = Seconds(600)
+
+    val ssc = new StreamingContext("local[*]", "TwitterStreaming", duration)
+    Logger.getRootLogger().setLevel(Level.ERROR)
+
+    // Filters tweets by hashtags only, 
+    // then counts occurances of each one
+    // filtering them out every 12 hours
+    // and then sorting the results 
+    // https://www.udemy.com/course/apache-spark-with-scala-hands-on-with-big-data/learn/lecture/22022796#overview
     val results = TwitterUtils.createStream(ssc, None)
       .map(status => status.getText)
       .flatMap(text => text.split(" "))
       .filter(word => word.startsWith("#"))
       .map(hashtag => (hashtag, 1))
-      .reduceByKeyAndWindow(_+_, _-_, duration, duration)
-      .transform(rdd => rdd.sortBy(x => x._2, ascending = false))
-      .map(filterResults)
+      .reduceByKeyAndWindow(_+_, Minutes(720))
+      .transform(rdd => rdd.sortBy(x => x._2, ascending = false)).cache()
 
-    //results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://$key:$sec@cpiazza01-revature/project2/Results"))
-    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile("Results"))
+    // Save as text file to specified S3 bucket
+    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"s3a://${args(0)}"))
 
+    results.foreachRDD(rdd => rdd.coalesce(1).saveAsTextFile(s"Results"))
+
+    // Will create streaming checkpoints to ensure accurate data
     ssc.checkpoint("Checkpoint")
+
+    // Start the stream
     ssc.start()
+
+    // Stream until manually terminated
     ssc.awaitTermination
   }  
 }
