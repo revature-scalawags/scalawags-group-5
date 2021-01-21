@@ -4,8 +4,8 @@
 Spark application that analyzes data generated from streaming Tweets in real time, finding highest counts of hashtags for each letter of the alphabet 
 
 ## Technologies Used ##
-- Scala
-- Spark
+- Scala - version 2.12.12
+- Spark - version 3.0.1
 - Spark RDDs
 - awscala-s3 package
 
@@ -16,10 +16,6 @@ Spark application that analyzes data generated from streaming Tweets in real tim
 - Saves output csv file to an S3 bucket on the cloud
 
 ## Usage ##
-- Clone this repository with the following command:
-```bash
-git clone https://github.com/revature-scalawags/scalawags-group-5.git
-```
 - Navigate to the "twitter-stream-analysis" directory in your shell, then run "sbt assembly"
 - Once the jar is generated, it will be located in target/scala-x.xx. Copy this jar over to your spark cluster.
 - Save your AWS S3 credentials as environment variables in your spark cluster shell session in the following format:
