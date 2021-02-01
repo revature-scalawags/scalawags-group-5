@@ -10,6 +10,9 @@ import org.apache.spark.sql.Row
 
 object Main  {
 
+  /** Grabs arguments and starts the Spark Session for this application.
+    * @param args Arguments that could be - Folder File (File not needed)
+    */
   def main(args: Array[String]) {
     if(args.length == 1 || args.length == 2){
       val spark = SparkSession.builder().appName("spark-test").getOrCreate()
@@ -29,19 +32,20 @@ object Main  {
   def init(spark: SparkSession, args: Array[String]) {
     import spark.implicits._
 
+    //Path to the file or directory
     var path = args(0) 
     if(args.length == 2){ 
       path += "/" + args(1) 
     }
 
     // Import the file from the datalake
-    val jsonfile = spark.read.option("multiline", "true").json("/datalake/" + path).cache()
+    val jsonfile = spark.read.option("multiline", "true").json("/datalake/" + path)
 
     // Print the schema of the Json File
     //jsonfile.printSchema()
 
     // Reading the data into a dataset of just data that is needed.
-    val tweetDataset = jsonfile.as[Tweet]
+    val tweetDataset = jsonfile.as[Tweet].cache()
 
     // Different way of doing spark sql
     //tweetDataset.createOrReplaceTempView("TweetData")
@@ -56,8 +60,9 @@ object Main  {
 
     var fileStart = ""
 
+    // Names the files differently if two arguments.
     if(args.length == 2){
-      fileStart = args(1) + "_"
+      fileStart = args(0) + "_"
     }
 
     // Write to the datawarehouse
@@ -68,11 +73,11 @@ object Main  {
     fileWriter( args(0) + "/" + fileStart + "lang.csv", langCounting)
 
     // Write to the CLI
-    writeCLI(sourceCounting, "Source", 10)
+    writeCLI(sourceCounting, "Sources", 10)
     writeCLI(verifiedCounting, "Verified", 10)
     writeCLI(textCounting, "Text", 50)
-    writeCLI(hashtagCounting, "Hashtag", 50)
-    writeCLI(langCounting, "Language", 10)
+    writeCLI(hashtagCounting, "Hashtags", 50)
+    writeCLI(langCounting, "Languages", 10)
     
   }
 
@@ -81,8 +86,6 @@ object Main  {
      * @return Returns a map containing the category of the tweet (Android, iPhone, PC) and the number of times this type of tweet occured
      */
   def SourceQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
-    //println("Source")
-
     // SQL query on the dataset
     val sqlquery = tweetDataset.groupBy("source").count().collect()
     var sourceCounting = scala.collection.mutable.Map[String, Int]("android" -> 0, "ios" -> 0, "web" -> 0)
@@ -104,7 +107,6 @@ object Main  {
       }
     }
 
-    //sourceCounting.foreach( x => println(x._1 + ": " + x._2)  )
     sourceCounting
   }
 
@@ -114,12 +116,12 @@ object Main  {
     * @return map of each word found and the occurences of them
     */
   def TextQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
-    //println("Text")
 
     // SQL query on the dataset
     val sqlquery = tweetDataset.select("text").collect()
     var textCounting = Map[String, Int]()
 
+    // Regex to remove anything that isn't a number or a letter
     var reg = "[^a-zA-Z0-9\']".r
 
     // For each row in the query
@@ -139,10 +141,6 @@ object Main  {
       }
     }
 
-    // DELETE THIS
-    //val printable = textCounting.toSeq.sortWith(_._1 > _._1)
-    
-    //textCounting.foreach( x => if(x._2 > 1){ println(x._1 + ": " + x._2) } )
     textCounting
   }
 
@@ -151,14 +149,8 @@ object Main  {
      * @return Returns a map containing the category of the tweet for this specific scenario (verified/unverified) and the number of times this type of tweet occured
      */
   def VerifiedQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
-    //println("Verified")
-
     // SQL query on the dataset
     val sqlquery = tweetDataset.groupBy("user.verified").count().collect()
-
-    //tweetDataset.groupBy("user.verified").count().sort("count").show(10)
-    //tweetDataset.groupBy("user.verified").count().withColumnRenamed("count", "n").sort("n").limit(5).printSchema()
-
     val verifiedCounting = scala.collection.mutable.Map[String, Int]()
 
     // For each row in the query
@@ -168,7 +160,6 @@ object Main  {
       }
     }
 
-    //verifiedCounting.foreach( x => println(x._1 + ": " + x._2)  )
     verifiedCounting
   }
 
@@ -177,7 +168,6 @@ object Main  {
      * @return Returns a map containing hashtag names and number of times each hashtag occurred in the dataset
      */
   def HashtagsQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
-    //println("Hashtag")
 
     // SQL query on the dataset
     val sqlquery = tweetDataset.select("entities.hashtags.text").collect()
@@ -204,7 +194,6 @@ object Main  {
       }
     }
 
-    //hashtagCounting.foreach( x => println(x._1 + ": " + x._2)  )
     hashtagCounting
   }
 
@@ -213,12 +202,9 @@ object Main  {
    * @return Returns a map containing the languages used for the tweets in our dataset, along with a count of how many times each language occurs
    */
   def LangQuery(tweetDataset: Dataset[Tweet]):Map[String, Int] = {
-    //println("Language")
 
     // SQL query on the dataset
     val sqlquery = tweetDataset.groupBy("lang").count().collect()
-    //tweetDataset.groupBy("lang").count().filter("lang != 'ind'").sort(desc("count")).show()
-
     var langCounting = Map[String, Int]()
 
     // For each row in the query
@@ -231,7 +217,6 @@ object Main  {
 
     }
 
-    //langCounting.foreach( x => println(x._1 + ": " + x._2)  )
     langCounting
   }
   
@@ -257,23 +242,24 @@ object Main  {
   def writeCLI(counting: Map[String, Int], name: String, numberReturns: Int):Unit = {
     println(name)
     
-    // Sort the map
+    // Sort the map into a list
     val sortedList = counting.toSeq.sortWith(_._2 > _._2)
   
-    var i = 1
     breakable{
       for(i <- 0 until numberReturns){
+
+        // Check the size of the list so it doesn't try to grab out of index.
         if(i >= sortedList.size){
           break
         }
 
+        // Prints in order of biggest to smallest.
         println( (i + 1) + ". " + sortedList(i)._1 + ": " + sortedList(i)._2)
-
       }
     }
 
+    // An additional print so it is formatted correctly on the cli.
     println("")
-
   }
 
   // Case classes for the dataset formed from the json of twitter data
